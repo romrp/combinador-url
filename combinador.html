@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combinador</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .success-message {
+            color: green;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        #clickableLink {
+            word-break: break-word;
+            color: #007bff;
+            text-decoration: none;
+        }
+        #clickableLink:hover {
+            text-decoration: underline;
+        }
+        .link-container {
+            margin-top: 0.5rem;
+        }
+        input[type="radio"] {
+            width: 3%;
+            margin: 0.4rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Combinador URL</h1>
+
+        <div>
+            <fieldset>
+            <legend>Escolha o serviço:</legend>
+                    <div>
+                        <input type="radio" id="serv01" name="service" value="https://www.12ft.io/" />
+                        <label for="serv01">12FT.IO</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="serv02" name="service" value="https://www.archive.is/newest/" />
+                        <label for="serv02">ARCHIVE.IS</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="serv03" name="service" value="https://www.removepaywall.com/search?url=" checked />
+                        <label for="serv03">REMOVEPAYWALL.COM</label>
+                    </div>
+            </fieldset>
+        </div> 
+        <div>
+            <label for="baseUrl">Base URL:</label>
+            <input type="text" id="baseUrl" value="">
+        </div>
+        <div>
+            <label for="userUrl">Cole aqui o URL completo com (https://):</label>
+            <input type="text" id="userUrl" placeholder="https://www.exemplo.com.br/...">
+        </div>
+        <div style="display: inline-flex; align-items: left; gap: 0.5rem;">
+            <label for="stripQuery">Remover parâmetros da URL (tudo após "?")</label>
+            <input type="checkbox" id="stripQuery" checked>
+        </div>        
+        <button onclick="combineUrls()">Combinar URLs:</button>
+        <div>
+            <label for="result">Resultado:</label>
+            <textarea id="result" readonly></textarea>
+        </div>
+        <button onclick="copyToClipboard()">Copiar para o Clipboard</button>
+        <span id="copyMessage" class="success-message">Copiado para o Clipboard!</span>
+        <div class="link-container">
+            <strong>Clique para abrir:</strong>
+            <a id="clickableLink" href="" target="_blank"></a>
+        </div>
+    </div>
+
+<script>
+    let originalUrl = ''; // armazenar o valor original da URL
+
+    // Atualiza baseUrl quando radio button for trocado
+    document.querySelectorAll('input[name="service"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            document.getElementById('baseUrl').value = this.value;
+            combineUrls(); // opcional: atualiza resultado se já houver URL preenchida
+        });
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const selectedRadio = document.querySelector('input[name="service"]:checked');
+        if (selectedRadio) {
+            document.getElementById('baseUrl').value = selectedRadio.value;
+        }
+    });
+    function combineUrls() {
+        const baseUrl = document.getElementById('baseUrl').value;
+        let userUrl = document.getElementById('userUrl').value;
+        const stripQuery = document.getElementById('stripQuery').checked;
+
+        if (stripQuery) {
+            userUrl = stripQueryParams(userUrl);
+        }
+
+        const result = baseUrl + userUrl;
+        document.getElementById('result').value = result;
+
+        const clickableLink = document.getElementById('clickableLink');
+        clickableLink.href = result;
+        clickableLink.textContent = result;
+    }
+
+    function stripQueryParams(url) {
+        const index = url.indexOf('?');
+        return index >= 0 ? url.substring(0, index) : url;
+    }
+
+    const userUrlInput = document.getElementById('userUrl');
+    const stripCheckbox = document.getElementById('stripQuery');
+
+    userUrlInput.addEventListener('input', function () {
+        originalUrl = this.value;
+        if (stripCheckbox.checked) {
+            this.value = stripQueryParams(originalUrl);
+        }
+    });
+
+    stripCheckbox.addEventListener('change', function () {
+        if (this.checked) {
+            userUrlInput.value = stripQueryParams(originalUrl);
+        } else {
+            userUrlInput.value = originalUrl;
+        }
+    });
+
+    function copyToClipboard() {
+        const result = document.getElementById('result');
+        result.select();
+        document.execCommand('copy');
+
+        const copyMessage = document.getElementById('copyMessage');
+        copyMessage.style.opacity = '1';
+        setTimeout(() => {
+            copyMessage.style.opacity = '0';
+        }, 2000);
+    }
+</script>
+
+</body>
+</html>
